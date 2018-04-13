@@ -1,0 +1,9 @@
+<!DOCTYPE RCC><RCC version="1.0">
+<qresource>
+<file alias="stop.png">stop.png</file>
+<file alias="start.png">start.png</file>
+<file alias="parameters.png">parameters.png</file>
+<file alias="simulation.png">simulation.png</file>
+<file alias="signal.png">signal.png</file>
+</qresource>
+</RCC>
