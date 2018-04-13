@@ -41,5 +41,5 @@ PyMUS v2.0 allows the simulations to be fully operated using a graphical user in
 STEP2-STEP6 can mutually transition among each other maintaining all changes made in each step unless the target model is changed through STEP1. To support offline analyses, the simulation data including simulation time and all output variables in the Output Signals window are also saved in a separate file.
 
 
-Please see the following paper for example usages of PyMUS ver 2.0:
+Please see the following paper for example usages of PyMUS ver 2.0 and let us know when the executable file is needed for the current version of PyMUS:
 Kim H and Kim M (2018) PyMUS: Python-Based Simulation Software for Virtual Experiments on Motor Unit System. Front. Neuroinform. 12:15. doi: 10.3389/fninf.2018.00015
