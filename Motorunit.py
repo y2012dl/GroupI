@@ -27,7 +27,7 @@ import matplotlib.pyplot as plt
 import time
 from math import log, tanh, exp, cosh
 from scipy import integrate, signal
-from PyQt4.QtCore import *
+from PyQt5.QtCore import *
 
 # Motoneuron class
 class MotoNeuron:
@@ -385,6 +385,7 @@ class MotoNeuron:
         start_time = time.time()
         
         # output graph creation
+        print("About to create the figures for the simulation results...") #TODO troubleshoot
         if(len(scope1) != 0):
             self.createPlot(scope1, display_result)
             self.updatePlot(scope1, display_result, T, ResultArrays, k, num_steps)
@@ -393,6 +394,7 @@ class MotoNeuron:
             self.figure=plt.figure(frameon=False)
             
         k = 1
+        print("About to run simulation up to ", num_steps, " num_steps with r1.successful()=", r1.successful())
         while r1.successful() and k < num_steps:
             # Integration with motoneuron
             r1.integrate(round(r1.t, 9) + self.t_dt)
@@ -501,6 +503,7 @@ class MotoNeuron:
             DISYNI[k] = DGISYN[k]*(VD[k]-dvisyn)
 
             # output plotting
+            print("Now plot results...")
             if(len(scope1) != 0):
                 self.updatePlot(scope1, display_result, T, ResultArrays, k, num_steps)
                 
@@ -1188,7 +1191,7 @@ class MuscleFibers:
             if(self.XmSignalType=='Exp' or self.XmSignalType=='Dynamic'):
                 dt = times[1] - times[0]
                     
-            for t in xrange(1, lengh):
+            for t in range(1, lengh):
                 xm = Xm[t]
                 if(t == 1):
                     xm_1 = Xm[0]
@@ -2448,11 +2451,12 @@ class Oscilloscope():
 
     def run(self):
         # execute the integration function
-        if(self.cell.cellType=='Motoneuron'):
+        print("About to run the integration function...")
+        if(self.cell.cellType== 1): #'Motoneuron'):
             self.mn_ResultArrays = self.cell.solModel(self.mn_scopeList, self.display_result)
-        elif(self.cell.cellType=='Muscle Fibers'):
+        elif(self.cell.cellType==2): #'Muscle Fibers'):
             self.mf_ResultArrays = self.cell.solModel(self.mf_scopeList, self.display_result)
-        elif(self.cell.cellType=='Motor Unit'):            
+        elif(self.cell.cellType==3): #'Motor Unit'):            
             self.mu_ResultArrays = self.cell.solModel(self.mn_scopeList, self.mf_scopeList, self.display_result)
 
 # Xm signal generator class
@@ -2802,7 +2806,7 @@ class SynConSignalGenerator:
                             norm_e =x-((x-1)/p)*np.abs(t-p) # 1->x->1
                     
                     # negative values are not allowed.
-                    for i in xrange(0, num_steps):
+                    for i in range(0, num_steps):
                         if(norm_e[i] < 0):
                             norm_e[i] = 0.
                                 
@@ -2810,16 +2814,16 @@ class SynConSignalGenerator:
                     amp_e = np.sqrt(norm_e)*std_e * np.sqrt( (1-np.exp(-2*dt/tau_e)) )
                     
                     # exact update rule
-                    for i in xrange(0, num_steps): 
+                    for i in range(0, num_steps): 
                         G_e1[i] = exp_e * G_e1[i] + amp_e[i] * np.random.normal(loc=0.0, scale=1.0) # g(t+dt) = g(t) * exp(-dt/tau) + A * N(0,1)
                     G_e = norm_e*G_e0 + G_e1
                 # White noise
                 else:
-                    for i in xrange(0, num_steps):
+                    for i in range(0, num_steps):
                         G_e[i] = std_e * np.random.normal(loc=0.0, scale=1.0)
             
             # negative values are not allowed.
-            for i in xrange(0, num_steps):
+            for i in range(0, num_steps):
                 if(G_e[i] < 0):
                     G_e[i] = 0.
             
@@ -2900,7 +2904,7 @@ class SynConSignalGenerator:
                             norm_i =x-((x-1)/p)*np.abs(t-p) # 1->x->1
                             
                     # negative values are not allowed.
-                    for i in xrange(0, num_steps):
+                    for i in range(0, num_steps):
                         if(norm_i[i] < 0):
                             norm_i[i] = 0.
                     
@@ -2908,16 +2912,16 @@ class SynConSignalGenerator:
                     amp_i = np.sqrt(norm_i)*std_i * np.sqrt( (1-np.exp(-2*dt/tau_i)) )
                     
                     # exact update rule
-                    for i in xrange(0, num_steps):
+                    for i in range(0, num_steps):
                         G_i1[i] = exp_i * G_i1[i] + amp_i[i] * np.random.normal(loc=0.0, scale=1.0)        
                     G_i = norm_i*G_i0 + G_i1
                 # White noise
                 else:
-                    for i in xrange(0, num_steps):
+                    for i in range(0, num_steps):
                         G_i[i] = std_i * np.random.normal(loc=0.0, scale=1.0)
             
             # negative values are not allowed.
-            for i in xrange(0, num_steps):
+            for i in range(0, num_steps):
                 if(G_i[i] < 0):
                     G_i[i] = 0.
             

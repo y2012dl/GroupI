@@ -33,8 +33,9 @@ import os
 import warnings
 import copy
 from Motorunit import *
-from PyQt4.QtGui import *
-from PyQt4.QtCore import *
+from PyQt5.QtGui import *
+from PyQt5.QtWidgets import *
+from PyQt5.QtCore import *
 from ui_Main import Ui_MainWindow as Ui_M
 from ui_InitialValue import Ui_InitialValueWindow as Ui_ID
 from ui_Oscilloscope import Ui_OscilloscopeWindow as Ui_OD
@@ -66,10 +67,12 @@ class MainWindow(QMainWindow):
         # GUI operation-function
         self.uim.actionDirOpen.triggered.connect(self.openResultDirectory)
         self.uim.actionSave.triggered.connect(self.saveToFile)
-        self.uim.actionModel_Information.connect(self.uim.actionModel_Information, SIGNAL("triggered()"), self.openModelInfo)
         self.uim.actionModel_Information.triggered.connect(self.openModelInfo)
-        self.uim.actionAboutThis.connect(self.uim.actionAboutThis, SIGNAL("triggered()"), self.openAboutThisWindow)
-        self.uim.model_comboBox.connect(self.uim.model_comboBox, SIGNAL('activated(QString)'), self.importModel)
+        #self.uim.actionModel_Information.connect(self.uim.actionModel_Information, SIGNAL("triggered()"), self.openModelInfo)
+        self.uim.actionAboutThis.triggered.connect(self.openAboutThisWindow)
+        #self.uim.actionAboutThis.connect(self.uim.actionAboutThis, SIGNAL("triggered()"), self.openAboutThisWindow)
+        self.uim.model_comboBox.activated.connect(self.importModel)
+        #self.uim.model_comboBox.connect(self.uim.model_comboBox, SIGNAL('activated(QString)'), self.importModel)
         self.uim.InputSignalButton.clicked.connect(self.openInputSignalWindow)
         self.uim.ParamButton.clicked.connect(self.openParameterWindow)
         self.uim.IntegrationSettingButton.clicked.connect(self.openIntegrationWindow)
@@ -81,11 +84,11 @@ class MainWindow(QMainWindow):
         if(self.ModelType != ''):
             result = QMessageBox.question(self, 'Confirm Change...', 'Are you sure you want to change the model ?', QMessageBox.Yes| QMessageBox.No)
             if(result == QMessageBox.No):
-                if(self.ModelType == 'Motoneuron'):                
+                if(self.ModelType == 1): #'Motoneuron'):                
                     self.uim.model_comboBox.setCurrentIndex(1)
-                elif(self.ModelType == 'Muscle Fibers'):
+                elif(self.ModelType == 2): #'Muscle Fibers'):
                     self.uim.model_comboBox.setCurrentIndex(2)
-                elif(self.ModelType == 'Motor Unit'):
+                elif(self.ModelType == 3): #'Motor Unit'):
                     self.uim.model_comboBox.setCurrentIndex(3)
                 return
         
@@ -123,9 +126,9 @@ class MainWindow(QMainWindow):
             self.ATW = AboutThisWindow()
             
             # Model creation, default value setting
-            if(self.ModelType == 'Motoneuron' or self.ModelType == 'Motor Unit'):
+            if(self.ModelType !=2): #'Motoneuron' or self.ModelType == 'Motor Unit'):
                 self.MN = MotoNeuron(1)
-                if(self.ModelType == 'Motoneuron'):
+                if(self.ModelType == 1): #'Motoneuron'):
                     self.SGW.displayValue()
                     self.MN.setModelParam(self.PSW.mn_setValue, False, False)
                     self.MN.setIntegrationEnv(self.ISW.t_start, self.ISW.t_stop, self.ISW.t_dt, self.ISW.t_pt)
@@ -134,9 +137,9 @@ class MainWindow(QMainWindow):
                     self.MN.setSynConSignal(True, True, True, True, self.SGW.s_SCSG.e_times, self.SGW.s_SCSG.i_times, self.SGW.d_SCSG.e_times, self.SGW.d_SCSG.i_times, self.SGW.s_SCSG.G_e, self.SGW.s_SCSG.G_i, self.SGW.d_SCSG.G_e, self.SGW.d_SCSG.G_i)
                     self.OSC.setModel(self.MN)
             
-            if(self.ModelType == 'Muscle Fibers' or self.ModelType == 'Motor Unit'):
+            if(self.ModelType >= 2): #'Muscle Fibers' or self.ModelType == 'Motor Unit'):
                 self.MF = MuscleFibers(1)
-                if(self.ModelType == 'Muscle Fibers'):
+                if(self.ModelType == 2): #'Muscle Fibers'):
                     self.MF.setModelParam(self.PSW.mf_setValue)
                     self.MF.setIntegrationEnv(self.ISW.t_start, self.ISW.t_stop, self.ISW.t_dt, self.ISW.t_pt)
                     self.MF.setInitialValues(self.ISW.mf_setValue)
@@ -144,7 +147,7 @@ class MainWindow(QMainWindow):
                     self.MF.setXmSignal(self.SGW.XSG.signalType, self.SGW.XSG.times, self.SGW.XSG.xm)
                     self.OSC.setModel(self.MF)
                 
-                elif(self.ModelType == 'Motor Unit'):
+                elif(self.ModelType == 3): #'Motor Unit'):
                     self.MU = Motorunit(1, self.MN, self.MF)
                     self.SGW.displayValue()
                     self.MU.setModelParam(self.PSW.mn_setValue, self.PSW.mf_setValue, False, False)
@@ -155,7 +158,7 @@ class MainWindow(QMainWindow):
                     self.MU.setXmSignal(self.SGW.XSG.signalType, self.SGW.XSG.times, self.SGW.XSG.xm)
                     self.OSC.setModel(self.MU)
             self.uim.textEdit.clear()            
-            self.setTextEdit("["+self.ModelType+"] Model created.")                    
+            self.setTextEdit("["+str(self.ModelType)+"] Model created.")                    
 
     def openResultDirectory(self):
         curPath = os.path.dirname( os.path.abspath( sys.argv[0] ) )
@@ -181,18 +184,18 @@ class MainWindow(QMainWindow):
             return
             
         # save to file
-        if(self.ModelType=="Motoneuron"):            
+        if(self.ModelType==1): #"Motoneuron"):            
             df1=pd.DataFrame(self.OSC.mn_ResultArrays)
             cols = ['Time','Is', 'V_soma', '[Ca]_soma','E_Ca_soma','I_Naf_soma','m_Naf_soma','h_Naf_soma','I_Nap_soma','m_Nap_soma','I_Kdr_soma','n_Kdr_soma','I_Kca_soma','I_Can_soma','m_Can_soma','h_Can_soma','I_H_soma','m_H_soma','V_dend','[Ca]_dend','E_Ca_dend','I_Cal_dend','l_Cal_dend','I_Naf_dend','m_Naf_dend','h_Naf_dend','I_Nap_dend','m_Nap_dend','I_Kdr_dend','n_Kdr_dend','I_Kca_dend','I_Can_dend','m_Can_dend','h_Can_dend','I_H_dend','m_H_dend','I_esyn_soma','G_esyn_soma','I_isyn_soma','G_isyn_soma','I_esyn_dend','G_esyn_dend','I_isyn_dend','G_isyn_dend']
-        elif(self.ModelType=='Muscle Fibers'):            
+        elif(self.ModelType==2): #'Muscle Fibers'):            
             df1=pd.DataFrame(self.OSC.mf_ResultArrays)
             cols = ['Time','F','A','Am','A_tilde','B','CaSP','CaSPB','CaSPT','CaSR','CaSRCS','Cs','R','Spike','T','Vm','XCE','Xm']
-        elif(self.ModelType=='Motor Unit'):                
+        elif(self.ModelType==3): #'Motor Unit'):                
             df1=pd.DataFrame(self.OSC.mu_ResultArrays)
             cols = ['Time','Is', 'V_soma', '[Ca]_soma','E_Ca_soma','I_Naf_soma','m_Naf_soma','h_Naf_soma','I_Nap_soma','m_Nap_soma','I_Kdr_soma','n_Kdr_soma','I_Kca_soma','I_Can_soma','m_Can_soma','h_Can_soma','I_H_soma','m_H_soma','V_dend','[Ca]_dend','E_Ca_dend','I_Cal_dend','l_Cal_dend','I_Naf_dend','m_Naf_dend','h_Naf_dend','I_Nap_dend','m_Nap_dend','I_Kdr_dend','n_Kdr_dend','I_Kca_dend','I_Can_dend','m_Can_dend','h_Can_dend','I_H_dend','m_H_dend','I_esyn_soma','G_esyn_soma','I_isyn_soma','G_isyn_soma','I_esyn_dend','G_esyn_dend','I_isyn_dend','G_isyn_dend','A','Am','A_tilde','B','CaSP','CaSPB','CaSPT','CaSR','CaSRCS','Cs','F','R','Spike','T','Vm','XCE','Xm']
         df = df1.reindex(columns = cols)
         df.to_csv(filePath)
-        self.setTextEdit("["+self.ModelType+"] Simulation data saved.")
+        self.setTextEdit("["+str(self.ModelType)+"] Simulation data saved.")
        
     def openModelInfo(self):
         if(sys.platform == 'win32'):
@@ -214,16 +217,16 @@ class MainWindow(QMainWindow):
         self.SGW.activateWindow()
 
     def runSimulation(self):
-        if(self.uim.RunButton.isChecked()):        
-            if(self.ModelType == 'Motoneuron'):
+        if(self.uim.RunButton.isChecked()): 
+            if(self.ModelType == 1): # 'Motoneuron'):
                 model = self.MN
                 scopeList1 = self.OW.mn_ScopeList
                 scopeList2 = self.OW.mn_ScopeList
-            elif(self.ModelType == 'Muscle Fibers'):
+            elif(self.ModelType == 2): #'Muscle Fibers'):
                 model = self.MF
                 scopeList1 = self.OW.mf_ScopeList
                 scopeList2 = self.OW.mf_ScopeList
-            elif(self.ModelType == 'Motor Unit'):
+            elif(self.ModelType == 3): #'Motor Unit'):
                 model = self.MU
                 scopeList1 = self.OW.mn_ScopeList
                 scopeList2 = self.OW.mf_ScopeList
@@ -238,9 +241,10 @@ class MainWindow(QMainWindow):
             self.uim.RunButton.setStyleSheet("background-color: rgb(255, 106, 106)")
             self.uim.RunButton.setText("Stop")
             QApplication.processEvents()
-            self.setTextEdit("["+self.ModelType+"] Simulation started.")
+            self.setTextEdit("["+str(self.ModelType)+"] Simulation started.")
             
             # run simulation
+            # TODO get more info about the errors that occur and troubleshoot
             try:
                 warnings.filterwarnings("error")
                 self.OSC.run()
@@ -254,24 +258,25 @@ class MainWindow(QMainWindow):
                 self.uim.RunButton.setStyleSheet("background-color: rgb(155, 255, 172)")
                 self.uim.RunButton.setText("Run")
                 self.uim.RunButton.setChecked(False)
-                self.setTextEdit("["+self.ModelType+"] Simulation finished.")
-            self.setTextEdit("["+self.ModelType+"] Elapsed real time for simulation: "+str(model.simulTime)+" s")
+                self.setTextEdit("["+str(self.ModelType)+"] Simulation finished.")
+            self.setTextEdit("["+str(self.ModelType)+"] Elapsed real time for simulation: "+str(model.simulTime)+" s")
             self.uim.model_comboBox.setEnabled(True)
             self.uim.actionSave.setEnabled(True)
                 
         # stop simulation
         else:
-            if(self.ModelType == 'Motoneuron'):
+            if(self.ModelType == 1): #'Motoneuron'):
                 model = self.MN
-            elif(self.ModelType == 'Muscle Fibers'):
+            elif(self.ModelType == 2): #'Muscle Fibers'):
                 model = self.MF
-            elif(self.ModelType == 'Motor Unit'):
+            elif(self.ModelType == 3): #'Motor Unit'):
                 model = self.MU
+
             model.cellState = 'Stop'
             self.uim.model_comboBox.setEnabled(True)
             self.uim.RunButton.setStyleSheet("background-color: rgb(155, 255, 172)")
             self.uim.RunButton.setText('Run')
-            self.setTextEdit("["+self.ModelType+"] Simulation finished.")
+            self.setTextEdit("["+str(self.ModelType)+"] Simulation finished.")
 
     def openParameterWindow(self):
         self.PSW.displayValue()
@@ -408,27 +413,27 @@ class ParameterSettingWindow(QDialog):
         # set value
         curPath = os.path.dirname( os.path.abspath( sys.argv[0] ) )
         param = pd.read_csv(curPath + '/parameters/MN_Parameters/MN_Parameters.csv')
-        setValue = range(len(param.index))
+        setValue = list(range(len(param.index)))
         for i in range(len(param.index)):
             setValue[i] = float(param.Value[i])
         self.mn_idx = [0, 9, 14, 30, 40, 48, 51, 58, 63, 64, 65, 70, 74, 90, 100, 108, 111, 118, 123, 124, 125]
         self.mn_setValue_num = 125
         iter_num = len(self.mn_idx)
         idx = self.mn_idx
-        lstSlice_arr = range(len(self.mn_idx)-1)
+        lstSlice_arr = list(range(len(self.mn_idx)-1))
         for i in range(1, iter_num):
             lstSlice_arr[i-1] = setValue[idx[i-1]:idx[i]]
         self.mn_setValue = lstSlice_arr
         
         param = pd.read_csv(curPath + '/parameters/MF_Parameters/MF_Parameters.csv')
-        setValue = range(len(param.index))
+        setValue = list(range(len(param.index)))
         for i in range(len(param.index)):
             setValue[i] = float(param.Value[i])
         self.mf_idx = [0, 15, 20, 28] 
         self.mf_setValue_num = 28
         iter_num = len(self.mf_idx)
         idx = self.mf_idx
-        lstSlice_arr = range(len(self.mf_idx)-1)
+        lstSlice_arr = list(range(len(self.mf_idx)-1))
         for i in range(1, iter_num):
             lstSlice_arr[i-1] = setValue[idx[i-1]:idx[i]]
         self.mf_setValue = lstSlice_arr
@@ -441,7 +446,7 @@ class ParameterSettingWindow(QDialog):
         iter_num = len(self.mn_idx)-1
         idx = self.mn_idx
         k = 0
-        self.pre_G = range(len(self.mn_idx)-1)
+        self.pre_G = list(range(len(self.mn_idx)-1))
         for i in range(iter_num):        
             self.pre_G[i] = self.mn_setValue[i][0]  
         
@@ -997,6 +1002,7 @@ class ParameterSettingWindow(QDialog):
                         elif(tableWidget == self.uid.tableWidget_Dkca):
                             op_tablewidget = self.uid.tableWidget_Dkdr
                         else:
+                            print("No match for tableWidget=",tableWidget) # TODO NonType obj has no attribute text (line 1007)
                             continue
                         thisValue = float(item.text())
                         op_item = op_tablewidget.item(1, 1)
@@ -1010,6 +1016,7 @@ class ParameterSettingWindow(QDialog):
                     item = tableWidget.item(row, col)
                     defValue = self.mf_defaultValue[i][row]
                     setValue = self.mf_setValue[i][row]
+                    print("item=",item) # TODO NonType obj has no attribute text (line 1023)
                     
                     if(tableWidget == self.uid.tableWidget_m3):
                         # a0, c0 are proportional to P0 rate of change when P0 is changed.
@@ -1242,7 +1249,7 @@ class ParameterSettingWindow(QDialog):
 
     def displayValue(self, value=[], index=2):
         # display set value
-        if(self.MW.ModelType == 'Motoneuron' or self.MW.ModelType == 'Motor Unit'):  
+        if(self.MW.ModelType !=2): #'Motoneuron' or self.MW.ModelType == 'Motor Unit'):  
             self.checkChEnable()
             if(index != 0):
                 param=self.mn_setValue
@@ -1261,7 +1268,7 @@ class ParameterSettingWindow(QDialog):
                 if(i == idx[k+1]-1):
                     k+=1    
         
-        if(self.MW.ModelType == 'Muscle Fibers' or self.MW.ModelType == 'Motor Unit'):
+        if(self.MW.ModelType > 1): #'Muscle Fibers' or self.MW.ModelType == 'Motor Unit'):
             if(index != 1):
                 param=self.mf_setValue
             else:
@@ -1278,16 +1285,16 @@ class ParameterSettingWindow(QDialog):
                     
         self.init = True
         
-        if(self.MW.ModelType == 'Motoneuron'):
+        if(self.MW.ModelType == 1): #'Motoneuron'):
             self.uid.tabWidget.setTabEnabled(0, True)
             self.uid.tabWidget.setTabEnabled(1, False)
             self.checkValue()
             
-        elif(self.MW.ModelType == 'Muscle Fibers'):
+        elif(self.MW.ModelType == 2): #'Muscle Fibers'):
             self.uid.tabWidget.setTabEnabled(0, False)
             self.uid.tabWidget.setTabEnabled(1, True)
             
-        elif(self.MW.ModelType == 'Motor Unit'):
+        elif(self.MW.ModelType == 3): #'Motor Unit'):
             self.uid.tabWidget.setTabEnabled(0, True)
             self.uid.tabWidget.setTabEnabled(1, True)
             self.uid.tabWidget.setCurrentIndex(0) 
@@ -1314,7 +1321,7 @@ class ParameterSettingWindow(QDialog):
     def importData(self, fileName, currentWidget):
         try:
             param = pd.read_csv(unicode(fileName))
-            tempValue = range(len(param.index))
+            tempValue = list(range(len(param.index)))
             for i in range(len(param.index)):
                 tempValue[i] = float(param.Value[i])
             
@@ -1323,13 +1330,13 @@ class ParameterSettingWindow(QDialog):
                     raise Exception
                 iter_num = len(self.mn_idx)
                 idx = self.mn_idx
-                lstSlice_arr = range(len(self.mn_idx)-1)
+                lstSlice_arr = list(range(len(self.mn_idx)-1))
             elif(currentWidget == self.uid.mf_tab):
                 if(len(tempValue) != self.mf_setValue_num):
                     raise Exception
                 iter_num = len(self.mf_idx)
                 idx = self.mf_idx
-                lstSlice_arr = range(len(self.mf_idx)-1)
+                lstSlice_arr = list(range(len(self.mf_idx)-1))
             for i in range(1, iter_num):
                 lstSlice_arr[i-1] = tempValue[idx[i-1]:idx[i]] 
                 if(math.isnan(tempValue[i])):
@@ -1354,7 +1361,7 @@ class ParameterSettingWindow(QDialog):
 
     def setValue(self):
         # set the value
-        if(self.MW.ModelType == 'Motoneuron' or self.MW.ModelType == 'Motor Unit'):
+        if(self.MW.ModelType != 2): #'Motoneuron' or self.MW.ModelType == 'Motor Unit'):
             self.saveChEnable()
             
             iter_num = self.mn_setValue_num
@@ -1390,7 +1397,7 @@ class ParameterSettingWindow(QDialog):
                 self.MW.SGW.di_ch = False
             self.MW.MN.setSynConSignal(self.MW.SGW.se_ch, self.MW.SGW.si_ch, self.MW.SGW.de_ch, self.MW.SGW.di_ch, self.MW.SGW.s_SCSG.e_times, self.MW.SGW.s_SCSG.i_times, self.MW.SGW.d_SCSG.e_times, self.MW.SGW.d_SCSG.i_times, self.MW.SGW.s_SCSG.G_e, self.MW.SGW.s_SCSG.G_i, self.MW.SGW.d_SCSG.G_e, self.MW.SGW.d_SCSG.G_i)
 
-        if(self.MW.ModelType == 'Muscle Fibers' or self.MW.ModelType == 'Motor Unit'):
+        if(self.MW.ModelType > 1): #'Muscle Fibers' or self.MW.ModelType == 'Motor Unit'):
             iter_num = self.mf_setValue_num
             idx = self.mf_idx
             k = 0            
@@ -1401,13 +1408,13 @@ class ParameterSettingWindow(QDialog):
                     k+=1
 
         # Text message
-        if(self.MW.ModelType == 'Motoneuron'):
+        if(self.MW.ModelType == 1): #'Motoneuron'):
             self.MW.MN.setModelParam(self.mn_setValue, self.const_sEca, self.const_dEca)
             self.MW.setTextEdit("[Motoneuron] Parameter values set.")
-        elif(self.MW.ModelType == 'Muscle Fibers'):
+        elif(self.MW.ModelType == 2): #'Muscle Fibers'):
             self.MW.MF.setModelParam(self.mf_setValue)
             self.MW.setTextEdit("[Muscle Fibers] Parameter values set.")
-        elif(self.MW.ModelType == 'Motor Unit'):
+        elif(self.MW.ModelType == 3): #'Motor Unit'):
             self.MW.MU.setModelParam(self.mn_setValue, self.mf_setValue, self.const_sEca, self.const_dEca)
             self.MW.setTextEdit("[Motor Unit] Parameter values set.")
             
@@ -1644,8 +1651,10 @@ class IntegrationSettingWindow(QDialog):
                 k+=1
             
         # GUI operation-function 
-        self.uid.buttonBox.connect(self.uid.buttonBox, SIGNAL("accepted()"), self.setValue)
-        self.uid.buttonBox.connect(self.uid.applyButton, SIGNAL("clicked()"), self.setValue)
+        self.uid.buttonBox.accepted.connect(self.setValue)
+        self.uid.applyButton.clicked.connect(self.setValue)
+        #self.uid.buttonBox.connect(self.uid.buttonBox, SIGNAL("accepted()"), self.setValue)
+        #self.uid.buttonBox.connect(self.uid.applyButton, SIGNAL("clicked()"), self.setValue)
         self.uid.lineEdit_2.editingFinished.connect(self.checkValue)
         self.uid.lineEdit_3.editingFinished.connect(self.checkValue)
         self.uid.lineEdit_4.editingFinished.connect(self.checkValue)
@@ -1838,7 +1847,7 @@ class IntegrationSettingWindow(QDialog):
         self.uid.lineEdit_4.setText(str(self.t_setTable[3]))
         
         # tableWidget
-        if(self.MW.ModelType == 'Motoneuron' or self.MW.ModelType == 'Motor Unit'):
+        if(self.MW.ModelType !=2): #'Motoneuron' or self.MW.ModelType == 'Motor Unit'):
             self.setObjectEnabled()
             iter_num = self.mn_setValue_num
             idx = self.mn_idx
@@ -1849,7 +1858,7 @@ class IntegrationSettingWindow(QDialog):
                 if(i == idx[k+1]-1):
                     k+=1
         
-        if(self.MW.ModelType == 'Muscle Fibers' or self.MW.ModelType == 'Motor Unit'):
+        if(self.MW.ModelType > 1): #'Muscle Fibers' or self.MW.ModelType == 'Motor Unit'):
             iter_num = self.mf_setValue_num
             idx = self.mf_idx 
             k = 0            
@@ -1860,17 +1869,17 @@ class IntegrationSettingWindow(QDialog):
                     k+=1
                     
         # tab enable
-        if(self.MW.ModelType == 'Motoneuron'):
+        if(self.MW.ModelType == 1): #'Motoneuron'):
             self.uid.tabWidget.setTabEnabled(1, True)
             self.uid.tabWidget.setTabEnabled(2, False)
             self.uid.tabWidget.setCurrentIndex(0)
             
-        elif(self.MW.ModelType == 'Muscle Fibers'):
+        elif(self.MW.ModelType == 2): #'Muscle Fibers'):
             self.uid.tabWidget.setTabEnabled(1, False)
             self.uid.tabWidget.setTabEnabled(2, True)
             self.uid.tabWidget.setCurrentIndex(0) 
             
-        elif(self.MW.ModelType == 'Motor Unit'):
+        elif(self.MW.ModelType == 3): #'Motor Unit'):
             self.uid.tabWidget.setTabEnabled(1, True)
             self.uid.tabWidget.setTabEnabled(2, True)
             self.uid.tabWidget.setCurrentIndex(0)
@@ -1889,15 +1898,15 @@ class IntegrationSettingWindow(QDialog):
         self.t_pt = float(self.uid.lineEdit_4.text())
         self.t_setTable = self.t_start, self.t_stop, self.t_dt, self.t_pt
 
-        if(self.MW.ModelType == 'Motoneuron'):
+        if(self.MW.ModelType == 1): #'Motoneuron'):
             self.MW.MN.setIntegrationEnv(self.t_start, self.t_stop, self.t_dt, self.t_pt)
-        elif(self.MW.ModelType == 'Muscle Fibers'):
+        elif(self.MW.ModelType == 2): #'Muscle Fibers'):
             self.MW.MF.setIntegrationEnv(self.t_start, self.t_stop, self.t_dt, self.t_pt)
-        elif(self.MW.ModelType == 'Motor Unit'):
+        elif(self.MW.ModelType == 3): #'Motor Unit'):
             self.MW.MU.setIntegrationEnv(self.t_start, self.t_stop, self.t_dt, self.t_pt)
             
         # tableWidget
-        if(self.MW.ModelType == 'Motoneuron' or self.MW.ModelType == 'Motor Unit'):
+        if(self.MW.ModelType != 2): #'Motoneuron' or self.MW.ModelType == 'Motor Unit'):
             iter_num = self.mn_setValue_num
             idx = self.mn_idx
             k = 0            
@@ -1907,7 +1916,7 @@ class IntegrationSettingWindow(QDialog):
                 if(i == idx[k+1]-1):
                     k+=1
         
-        if(self.MW.ModelType == 'Muscle Fibers' or self.MW.ModelType == 'Motor Unit'):
+        if(self.MW.ModelType > 1): #'Muscle Fibers' or self.MW.ModelType == 'Motor Unit'):
             iter_num = self.mf_setValue_num 
             idx = self.mf_idx
             k = 0            
@@ -1918,13 +1927,13 @@ class IntegrationSettingWindow(QDialog):
                     k+=1
         
         # Text message        
-        if(self.MW.ModelType == 'Motoneuron'):
+        if(self.MW.ModelType == 1): #'Motoneuron'):
             self.MW.MN.setInitialValues(self.mn_setValue)
             self.MW.setTextEdit("[Motoneuron] Simulation conditions set.")
-        elif(self.MW.ModelType == 'Muscle Fibers'):
+        elif(self.MW.ModelType == 2): #'Muscle Fibers'):
             self.MW.MF.setInitialValues(self.mf_setValue)
             self.MW.setTextEdit("[Muscle Fibers] Simulation conditions set.")
-        elif(self.MW.ModelType == 'Motor Unit'):
+        elif(self.MW.ModelType == 3): #'Motor Unit'):
             self.MW.MU.setInitialValues(self.mn_setValue, self.mf_setValue)
             self.MW.setTextEdit("[Motor Unit] Simulation conditions set.")
         
@@ -2413,7 +2422,7 @@ class SignalGeneratorWindow(QDialog):
         
         iter_num = syn_num 
         idx = syn_idx
-        syn_tableWidget = np.asarray(zip(self.syn_tableWidget_F + self.syn_tableWidget_T)).flatten()
+        syn_tableWidget = np.asarray(list(zip(self.syn_tableWidget_F + self.syn_tableWidget_T))).flatten()
         k = 0
         for i in range(iter_num):
             item = QTableWidgetItem()
@@ -2532,8 +2541,10 @@ class SignalGeneratorWindow(QDialog):
         self.uid.xm_load_pushButton.setEnabled(False)
         
         # GUI operation-function 
-        self.uid.buttonBox.connect(self.uid.buttonBox, SIGNAL("accepted()"), self.setValue)
-        self.uid.buttonBox.connect(self.uid.applyButton, SIGNAL("clicked()"), self.setValue)
+        self.uid.buttonBox.accepted.connect(self.setValue)
+        self.uid.applyButton.clicked.connect(self.setValue)
+#        self.uid.buttonBox.connect(self.uid.buttonBox, SIGNAL("accepted()"), self.setValue)
+#        self.uid.buttonBox.connect(self.uid.applyButton, SIGNAL("clicked()"), self.setValue)
         self.uid.is_load_pushButton.clicked.connect(self.openFile)
         self.uid.sesyn_load_pushButton.clicked.connect(self.openFile)
         self.uid.sisyn_load_pushButton.clicked.connect(self.openFile)
@@ -2731,7 +2742,7 @@ class SignalGeneratorWindow(QDialog):
         # to inform activation or deactivation of value.
         item_v = tableWidget.item(row, col)
         item = QTableWidgetItem(item_v.text())
-        item.setTextColor(color)
+        item.setForeground(color)
         
         if(enable == True):
             item.setFlags(item.flags() | Qt.ItemIsEnabled)
@@ -2743,7 +2754,7 @@ class SignalGeneratorWindow(QDialog):
     def setObjectEnabled(self):
         ## object enable setting
         # Isoma
-        if(self.MW.ModelType == 'Motoneuron' or self.MW.ModelType == 'Motor Unit'):
+        if(self.MW.ModelType != 2): #'Motoneuron' or self.MW.ModelType == 'Motor Unit'):
             if(self.isFixBtn.isChecked()):
                 self.uid.tableWidget_isF.setEnabled(True)
                 self.uid.label_1.setEnabled(False)
@@ -2797,7 +2808,7 @@ class SignalGeneratorWindow(QDialog):
             rowT = 3
             v_col = 1
             l_col = 0
-            channel_enable = range(4)
+            channel_enable = list(range(4))
             if(self.MW.PSW.channel_enable['Sesyn'] == True):
                 channel_enable[0] = True
             else:
@@ -2890,7 +2901,7 @@ class SignalGeneratorWindow(QDialog):
                     self.setItemColorEnable(self.syn_tableWidget_T[i], rowT,   v_col, Qt.darkGray, False)
                     self.setItemColorEnable(self.syn_tableWidget_T[i], rowT+1, v_col, Qt.darkGray, False)
 
-        if(self.MW.ModelType == 'Muscle Fibers'):
+        if(self.MW.ModelType == 2): #'Muscle Fibers'):
             if(self.spUserBtn.isChecked()):
                 self.uid.label_4.setEnabled(True)
                 self.uid.label_5.setEnabled(True)
@@ -2927,7 +2938,7 @@ class SignalGeneratorWindow(QDialog):
                 self.lineEdit[5].setEnabled(False)
                 self.lineEdit[6].setEnabled(False)
                 
-        if(self.MW.ModelType == 'Muscle Fibers' or self.MW.ModelType == 'Motor Unit'):
+        if(self.MW.ModelType >1): #'Muscle Fibers' or self.MW.ModelType == 'Motor Unit'):
             if(self.xmIsomeBtn.isChecked()):
                 self.uid.label_9.setEnabled(True)
                 self.lineEdit[7].setEnabled(True)
@@ -3019,7 +3030,7 @@ class SignalGeneratorWindow(QDialog):
             
     def displayValue(self):
         # display set value
-        if(self.MW.ModelType == 'Motoneuron' or self.MW.ModelType == 'Motor Unit'):
+        if(self.MW.ModelType !=2): #'Motoneuron' or self.MW.ModelType == 'Motor Unit'):
             for i in range(self.isF_idx):
                 item = QTableWidgetItem(str(self.isF_setValue[i]))
                 self.uid.tableWidget_isF.setItem(i, 1, item)
@@ -3045,8 +3056,8 @@ class SignalGeneratorWindow(QDialog):
                 if(i == idx[k+1]-1):
                     k+=1
         
-        if(self.MW.ModelType == 'Muscle Fibers' or self.MW.ModelType == 'Motor Unit'):
-            if(self.MW.ModelType == 'Muscle Fibers'):
+        if(self.MW.ModelType > 1): #'Muscle Fibers' or self.MW.ModelType == 'Motor Unit'):
+            if(self.MW.ModelType == 2): #'Muscle Fibers'):
                 self.uid.lineEdit_4.setText(str(self.setTable[3]))
                 self.uid.lineEdit_5.setText(str(self.setTable[4]))
                 self.uid.lineEdit_6.setText(str(self.setTable[5]))
@@ -3059,19 +3070,19 @@ class SignalGeneratorWindow(QDialog):
             self.calXmVelocity()
             
         # tab activation or deactivation
-        if(self.MW.ModelType == 'Motoneuron'): 
+        if(self.MW.ModelType == 1): #'Motoneuron'): 
             self.uid.tabWidget.setTabEnabled(0, True)
             self.uid.tabWidget.setTabEnabled(1, True) 
             self.uid.tabWidget.setTabEnabled(2, False)
             self.uid.tabWidget.setTabEnabled(3, False)
             self.uid.tabWidget.setCurrentIndex(0) 
-        elif(self.MW.ModelType == 'Muscle Fibers'):
+        elif(self.MW.ModelType == 2): #'Muscle Fibers'):
             self.uid.tabWidget.setTabEnabled(0, False)
             self.uid.tabWidget.setTabEnabled(1, False) 
             self.uid.tabWidget.setTabEnabled(2, True)
             self.uid.tabWidget.setTabEnabled(3, True)
             self.uid.tabWidget.setCurrentIndex(2)
-        elif(self.MW.ModelType == 'Motor Unit'):
+        elif(self.MW.ModelType == 3): #'Motor Unit'):
             self.uid.tabWidget.setTabEnabled(0, True)
             self.uid.tabWidget.setTabEnabled(1, True) 
             self.uid.tabWidget.setTabEnabled(2, False)
@@ -3115,7 +3126,7 @@ class SignalGeneratorWindow(QDialog):
         
     def setValue(self):
         ## set the value
-        if(self.MW.ModelType == 'Motoneuron' or self.MW.ModelType == 'Motor Unit'):
+        if(self.MW.ModelType !=2): #'Motoneuron' or self.MW.ModelType == 'Motor Unit'):
             # Isoma
             if(self.gen_isType == 'Step'):
                 self.isF_setValue = self.gen_isF_heav[:]
@@ -3161,9 +3172,9 @@ class SignalGeneratorWindow(QDialog):
                 elif(self.gen_synType[i] == 'Import'):
                     self.syn_setButton[i] = self.syn_ImtBtn[i]
 
-        if(self.MW.ModelType == 'Muscle Fibers' or self.MW.ModelType == 'Motor Unit'): 
+        if(self.MW.ModelType > 1): #'Muscle Fibers' or self.MW.ModelType == 'Motor Unit'): 
             # Iaxon
-            if(self.MW.ModelType == 'Muscle Fibers'):
+            if(self.MW.ModelType == 2): #'Muscle Fibers'):
                 if(self.gen_spikeType == 'User'):
                     self.setTable[3] = self.gen_spike_t1
                     self.setTable[4] = self.gen_spike_t2
@@ -3194,15 +3205,15 @@ class SignalGeneratorWindow(QDialog):
         self.t_start, self.t_final, self.t_dt, self.t_pt = self.MW.ISW.t_setTable
         
         # Text message
-        if(self.MW.ModelType == 'Motoneuron'):
+        if(self.MW.ModelType == 1): #'Motoneuron'):
             self.MW.MN.setInputSignal(self.ISG.signalType, self.ISG.iValue, self.ISG.pValue, self.ISG.Is_0, self.ISG.heav_param, self.ISG.period, self.ISG.times, self.ISG.Is)
             self.MW.MN.setSynConSignal(self.se_ch, self.si_ch, self.de_ch, self.di_ch, self.s_SCSG.e_times, self.s_SCSG.i_times, self.d_SCSG.e_times, self.d_SCSG.i_times, self.s_SCSG.G_e, self.s_SCSG.G_i, self.d_SCSG.G_e, self.d_SCSG.G_i)
             self.MW.setTextEdit("[Motoneuron] Input signals set.")
-        elif(self.MW.ModelType == 'Muscle Fibers'):
+        elif(self.MW.ModelType == 2): #'Muscle Fibers'):
             self.MW.MF.setSpikeSignal(self.SSG.spike, self.SSG.spike_idx, self.SSG.SpikeTimes)                
             self.MW.MF.setXmSignal(self.XSG.signalType, self.XSG.times, self.XSG.xm)
             self.MW.setTextEdit("[Muscle Fibers] Input signals set.")
-        elif(self.MW.ModelType == 'Motor Unit'):
+        elif(self.MW.ModelType == 3): #'Motor Unit'):
             self.MW.MU.setInputSignal(self.ISG.signalType, self.ISG.iValue, self.ISG.pValue, self.ISG.Is_0, self.ISG.heav_param, self.ISG.period, self.ISG.times, self.ISG.Is)
             self.MW.MU.setSynConSignal(self.se_ch, self.si_ch, self.de_ch, self.di_ch, self.s_SCSG.e_times, self.s_SCSG.i_times, self.d_SCSG.e_times, self.d_SCSG.i_times, self.s_SCSG.G_e, self.s_SCSG.G_i, self.d_SCSG.G_e, self.d_SCSG.G_i)
             self.MW.MU.setXmSignal(self.XSG.signalType, self.XSG.times, self.XSG.xm)
@@ -3389,6 +3400,7 @@ class SignalGeneratorWindow(QDialog):
                         signalType = 'Step'
                         for k in range(len(self.gen_synF_heav[0])):
                             item = self.syn_tableWidget_F[i].item(k, 1)
+                            print("item=",item) # TODO NonType obj has no attribute text (line 1023)
                             self.gen_synF_heav[i][k] = float(item.text())
                         heav = self.gen_synF_heav[i]
                         iValue = 0.
@@ -3579,7 +3591,7 @@ class SignalGeneratorWindow(QDialog):
             self.is_fig.canvas.draw()
             self.is_fig.show()
             self.is_fig.canvas.manager.window.raise_()
-            self.MW.setTextEdit("["+ModelType+"] Somatic input signal (Isoma) generated.")
+            self.MW.setTextEdit("["+str(ModelType)+"] Somatic input signal (Isoma) generated.")
     
         # Isyn  
         elif(currentWidget == self.uid.syn_tab):
@@ -3876,8 +3888,10 @@ class OscilloscopeWindow(QDialog):
         self.mf_checkbox_list.append(self.uid.checkBox_As)
         
         # GUI operation-function 
-        self.uid.buttonBox.connect(self.uid.buttonBox, SIGNAL("accepted()"), self.setScopeList)
-        self.uid.buttonBox.connect(self.uid.applyButton, SIGNAL("clicked()"), self.setScopeList)
+        self.uid.buttonBox.accepted.connect(self.setScopeList)
+        self.uid.applyButton.clicked.connect(self.setScopeList)
+#        self.uid.buttonBox.connect(self.uid.buttonBox, SIGNAL("accepted()"), self.setScopeList)
+#        self.uid.buttonBox.connect(self.uid.applyButton, SIGNAL("clicked()"), self.setScopeList)
 
     def keyPressEvent(self, event):
         # operation of Key_Return or Key_Enter
@@ -4013,7 +4027,7 @@ class OscilloscopeWindow(QDialog):
             self.setScopeList(from_self)
             
     def displayScope(self):
-        if(self.MW.ModelType == 'Motoneuron' or self.MW.ModelType == 'Motor Unit'):        
+        if(self.MW.ModelType !=2): #'Motoneuron' or self.MW.ModelType == 'Motor Unit'):        
             self.setObjectEnabled()        
             # checkbox check or uncheck           
             for i in range(self.mn_list_num):
@@ -4022,7 +4036,7 @@ class OscilloscopeWindow(QDialog):
                 else: 
                     self.mn_checkbox_list[i].setCheckState(Qt.Checked)
         
-        if(self.MW.ModelType == 'Muscle Fibers' or self.MW.ModelType == 'Motor Unit'):
+        if(self.MW.ModelType > 1): #'Muscle Fibers' or self.MW.ModelType == 'Motor Unit'):
             for i in range(self.mf_list_num):
                 if(self.mf_checkbox_state[i] == False):
                     self.mf_checkbox_list[i].setCheckState(Qt.Unchecked)
@@ -4030,13 +4044,13 @@ class OscilloscopeWindow(QDialog):
                     self.mf_checkbox_list[i].setCheckState(Qt.Checked)
         
         # tab enable
-        if(self.MW.ModelType == 'Motoneuron'):            
+        if(self.MW.ModelType == 1): #'Motoneuron'):            
             self.uid.tabWidget.setTabEnabled(0, True)
             self.uid.tabWidget.setTabEnabled(1, False)
-        elif(self.MW.ModelType == 'Muscle Fibers'):            
+        elif(self.MW.ModelType == 2): #'Muscle Fibers'):            
             self.uid.tabWidget.setTabEnabled(0, False)
             self.uid.tabWidget.setTabEnabled(1, True)       
-        elif(self.MW.ModelType == 'Motor Unit'):            
+        elif(self.MW.ModelType == 3): #'Motor Unit'):            
             self.uid.tabWidget.setTabEnabled(0, True)
             self.uid.tabWidget.setTabEnabled(1, True)
             self.uid.tabWidget.setCurrentIndex(0)
@@ -4045,7 +4059,7 @@ class OscilloscopeWindow(QDialog):
 
     def setScopeList(self, from_self=True):
         # set the scope
-        if(self.MW.ModelType == 'Motoneuron' or self.MW.ModelType == 'Motor Unit'):            
+        if(self.MW.ModelType !=2): #'Motoneuron' or self.MW.ModelType == 'Motor Unit'):            
             for i in range(self.mn_list_num):                
                 if(self.mn_checkbox_list[i].isChecked()):
                     self.mn_checkbox_state[i] = True
@@ -4055,7 +4069,7 @@ class OscilloscopeWindow(QDialog):
                     self.mn_checkbox_state[i] = False
                     self.mn_ScopeList.remove(self.mn_itemList[i])
 
-        if(self.MW.ModelType == 'Muscle Fibers' or self.MW.ModelType == 'Motor Unit'):            
+        if(self.MW.ModelType > 1): #'Muscle Fibers' or self.MW.ModelType == 'Motor Unit'):            
             for i in range(self.mf_list_num):                
                 if(self.mf_checkbox_list[i].isChecked()):
                     self.mf_checkbox_state[i] = True
@@ -4067,7 +4081,7 @@ class OscilloscopeWindow(QDialog):
        
         if(from_self==True):
             # Text message
-            if(self.MW.ModelType == 'Motoneuron'):
+            if(self.MW.ModelType == 1): #'Motoneuron'):
                 self.MW.setTextEdit("[Motoneuron] Output variables for plotting set.")
                 item = "Item : "
                 mn_num = len(self.mn_ScopeList)
@@ -4082,7 +4096,7 @@ class OscilloscopeWindow(QDialog):
                 
                 self.MW.uim.textEdit.append(item)
             
-            elif(self.MW.ModelType == 'Muscle Fibers'):
+            elif(self.MW.ModelType == 2): #'Muscle Fibers'):
                 self.MW.setTextEdit("[Muscle Fibers] Output variables for plotting set.")
                 item = "Item : "
                 mf_num = len(self.mf_ScopeList)
@@ -4097,7 +4111,7 @@ class OscilloscopeWindow(QDialog):
                 
                 self.MW.uim.textEdit.append(item)
             
-            elif(self.MW.ModelType == 'Motor Unit'):
+            elif(self.MW.ModelType == 3): #'Motor Unit'):
                 self.MW.setTextEdit("[Motor Unit] Output variables for plotting set.")
                 item = "Item : [MN] "
                 mn_num = len(self.mn_ScopeList)
@@ -4143,5 +4157,5 @@ if __name__  ==  '__main__':
     MW.show()
     app.exec_()
     
-    del MW
+    #del MW
     
