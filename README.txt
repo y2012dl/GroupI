@@ -43,3 +43,5 @@ STEP2-STEP6 can mutually transition among each other maintaining all changes mad
 
 Please see the following paper for example usages of PyMUS ver 2.0:
 Kim H and Kim M (2018) PyMUS: Python-Based Simulation Software for Virtual Experiments on Motor Unit System. Front. Neuroinform. 12:15. doi: 10.3389/fninf.2018.00015
+
+Practice with pull requests
