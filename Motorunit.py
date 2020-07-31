@@ -151,7 +151,7 @@ class MotoNeuron:
 
         # Output from ODEs
         n = len(y)      
-        dydt=range(n)
+        dydt=list(range(n))
         ## [SOMA]
         # d(vs)/dt
         dydt[0]=(I_s+ins+outs-self.gms*(vs-svl)+self.gc*(vd-vs)/parea)/self.cms
@@ -385,16 +385,16 @@ class MotoNeuron:
         start_time = time.time()
         
         # output graph creation
-        print("About to create the figures for the simulation results...") #TODO troubleshoot
+
         if(len(scope1) != 0):
             self.createPlot(scope1, display_result)
             self.updatePlot(scope1, display_result, T, ResultArrays, k, num_steps)
         else:
             # figure instance creation for prevent GIL 
-            self.figure=plt.figure(frameon=False)
+            self.figure=plt.figure(frameon=False) #TODO check this keyword arg
             
         k = 1
-        print("About to run simulation up to ", num_steps, " num_steps with r1.successful()=", r1.successful())
+
         while r1.successful() and k < num_steps:
             # Integration with motoneuron
             r1.integrate(round(r1.t, 9) + self.t_dt)
@@ -503,7 +503,6 @@ class MotoNeuron:
             DISYNI[k] = DGISYN[k]*(VD[k]-dvisyn)
 
             # output plotting
-            print("Now plot results...")
             if(len(scope1) != 0):
                 self.updatePlot(scope1, display_result, T, ResultArrays, k, num_steps)
                 
@@ -642,10 +641,10 @@ class MotoNeuron:
     def createPlot(self, scope1, display_result):
         self.scopeLength=len(scope1)
         self.sampling_rate=self.t_pt/self.t_dt
-        self.xdata=range(self.scopeLength)
-        self.ydata=range(self.scopeLength)
-        self.lines=range(self.scopeLength)
-        self.background=range(self.scopeLength)
+        self.xdata=list(range(self.scopeLength))
+        self.ydata=list(range(self.scopeLength))
+        self.lines=list(range(self.scopeLength))
+        self.background=list(range(self.scopeLength))
         plt.rc('figure', figsize=(7, 7))
         
         # close previous figure
@@ -657,7 +656,7 @@ class MotoNeuron:
             
         # Individual
         if(display_result == 'Individual'):
-            self.ax=range(self.scopeLength)
+            self.ax=list(range(self.scopeLength))
             
             for i in range(self.scopeLength):
                 var = scope1[i]
@@ -998,7 +997,7 @@ class MuscleFibers:
            
         # Output from ODEs
         n = len(y)      
-        dydt=range(n)
+        dydt=list(range(n))
         
         ## Module 1    
         # d(CS)/dt
@@ -1212,10 +1211,10 @@ class MuscleFibers:
     def createPlot(self, scope2, display_result):    
         self.scopeLength=len(scope2)
         self.sampling_rate=self.t_pt/self.t_dt
-        self.lines=range(self.scopeLength)
-        self.xdata=range(self.scopeLength)
-        self.ydata=range(self.scopeLength)
-        self.background=range(self.scopeLength)
+        self.lines=list(range(self.scopeLength))
+        self.xdata=list(range(self.scopeLength))
+        self.ydata=list(range(self.scopeLength))
+        self.background=list(range(self.scopeLength))
         plt.rc('figure', figsize=(7, 7))
         
         # close previous figure
@@ -1227,7 +1226,7 @@ class MuscleFibers:
             
         # Individual
         if(display_result == 'Individual'):
-            self.ax=range(self.scopeLength)
+            self.ax=list(range(self.scopeLength))
             for i in range(self.scopeLength):
                 var = scope2[i]
                 # add axes
@@ -1587,7 +1586,7 @@ class Motorunit:
         r1= integrate.ode(self.MN.model).set_integrator('vode')
         # initialize MN integrator
         r1.set_initial_value(ivalues, self.t_start)
-        
+
         # Result arrays
         num_steps = int(np.floor((self.t_stop - self.t_start)/self.t_dt) + 1)
         T3 = np.zeros(num_steps)
@@ -1806,7 +1805,7 @@ class Motorunit:
         else:
             # figure instance creation for prevent GIL 
             self.figure=plt.figure(frameon=False)
-            
+
         k = 1
         while r2.successful() and k < num_steps:            
             # Integration with motoneuron
@@ -1832,7 +1831,6 @@ class Motorunit:
             DCAM[k]=r1.y[16]
             DCAH[k]=r1.y[17]
             DHM[k]=r1.y[18]
-                        
             ## re-calculate results about not state variable   
             # Isoma
             if(self.MN.IsSignalType=='Step'):
@@ -2084,7 +2082,6 @@ class Motorunit:
         
         # calculate Elapsed time      
         self.simulTime=time.time() - start_time
-
         if(len(scope1) == 0 and len(scope2) == 0):
             self.figure = None
         
@@ -2107,18 +2104,17 @@ class Motorunit:
             self.figure.canvas.parent().setWindowFlags(
             Qt.Window)
             self.figure.show()
-        
         return ResultArrays
     
     def createPlot(self, scope1, scope2, display_result):
         scopeLength1=len(scope1)
         scopeLength2=len(scope2)        
         self.scopeLength = scopeLength1 + scopeLength2
-        self.lines=range(self.scopeLength)
-        self.xdata=range(self.scopeLength)
-        self.ydata=range(self.scopeLength)
+        self.lines=list(range(self.scopeLength))
+        self.xdata=list(range(self.scopeLength))
+        self.ydata=list(range(self.scopeLength))
         self.scope = scope1 + scope2
-        self.background=range(self.scopeLength)
+        self.background=list(range(self.scopeLength))
         self.sampling_rate=self.t_pt/self.t_dt
         plt.rc('figure', figsize=(7, 7))
         
@@ -2132,7 +2128,7 @@ class Motorunit:
                 
         # Individual
         if(display_result == 'Individual'):
-            self.ax=range(self.scopeLength)
+            self.ax=list(range(self.scopeLength))
             
             for i in range(self.scopeLength):
                 var = self.scope[i]
@@ -2451,14 +2447,13 @@ class Oscilloscope():
 
     def run(self):
         # execute the integration function
-        print("About to run the integration function...")
-        if(self.cell.cellType== 1): #'Motoneuron'):
+        if(self.cell.cellType== 'Motoneuron'):
             self.mn_ResultArrays = self.cell.solModel(self.mn_scopeList, self.display_result)
-        elif(self.cell.cellType==2): #'Muscle Fibers'):
+        elif(self.cell.cellType=='Muscle Fibers'):
             self.mf_ResultArrays = self.cell.solModel(self.mf_scopeList, self.display_result)
-        elif(self.cell.cellType==3): #'Motor Unit'):            
+        elif(self.cell.cellType=='Motor Unit'):            
             self.mu_ResultArrays = self.cell.solModel(self.mn_scopeList, self.mf_scopeList, self.display_result)
-
+        
 # Xm signal generator class
 class XmSignalGenerator:
     def __init__(self, signalType, t_final=0, t_dt=0, value1=0, value2=0, time1=0, time2=0, exp_time=0, exp_Xm=0):
