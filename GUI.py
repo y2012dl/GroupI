@@ -248,12 +248,10 @@ class MainWindow(QMainWindow):
             try:
                 warnings.filterwarnings("error")
                 self.OSC.run()
-                print("just finished self.OSC.run()")
             except:
                 self.setTextEdit("[Error] Simulation stopped due to integrator error.")
             finally:
                 warnings.filterwarnings("default")
-                print("Made it to finally statement")
             
             # end simulation
             if(model.cellState != 'Stop'):                    
@@ -1018,7 +1016,6 @@ class ParameterSettingWindow(QDialog):
                     item = tableWidget.item(row, col)
                     defValue = self.mf_defaultValue[i][row]
                     setValue = self.mf_setValue[i][row]
-                    print("item=",item) # TODO NonType obj has no attribute text (line 1023)
                     
                     if(tableWidget == self.uid.tableWidget_m3):
                         # a0, c0 are proportional to P0 rate of change when P0 is changed.
@@ -3402,7 +3399,6 @@ class SignalGeneratorWindow(QDialog):
                         signalType = 'Step'
                         for k in range(len(self.gen_synF_heav[0])):
                             item = self.syn_tableWidget_F[i].item(k, 1)
-                            print("item=",item) # TODO NonType obj has no attribute text (line 1023)
                             self.gen_synF_heav[i][k] = float(item.text())
                         heav = self.gen_synF_heav[i]
                         iValue = 0.
