@@ -23,7 +23,7 @@ Please contact us at hojeong.kim03@gmail.com for any inquiries or questions on t
 """
 
 import matplotlib as mpl
-mpl.use('qt4Agg')
+mpl.use('qt5Agg')
 import matplotlib.pyplot as plt
 import pandas as pd
 import numpy as np
@@ -1016,7 +1016,6 @@ class ParameterSettingWindow(QDialog):
                     item = tableWidget.item(row, col)
                     defValue = self.mf_defaultValue[i][row]
                     setValue = self.mf_setValue[i][row]
-                    print("item=",item) # TODO NonType obj has no attribute text (line 1023)
                     
                     if(tableWidget == self.uid.tableWidget_m3):
                         # a0, c0 are proportional to P0 rate of change when P0 is changed.
@@ -3400,7 +3399,6 @@ class SignalGeneratorWindow(QDialog):
                         signalType = 'Step'
                         for k in range(len(self.gen_synF_heav[0])):
                             item = self.syn_tableWidget_F[i].item(k, 1)
-                            print("item=",item) # TODO NonType obj has no attribute text (line 1023)
                             self.gen_synF_heav[i][k] = float(item.text())
                         heav = self.gen_synF_heav[i]
                         iValue = 0.
@@ -3619,7 +3617,7 @@ class SignalGeneratorWindow(QDialog):
                     self.d_ax = self.syn_fig.add_subplot(1, 1, 1)
             
             elif(s_logic & d_logic == False):
-                self.MW.setTextEdit("["+ModelType+"] No synaptic input included.")
+                self.MW.setTextEdit("["+str(ModelType)+"] No synaptic input included.")
                 # no data display
                 self.syn_fig.canvas.draw()
                 self.syn_fig.show()
@@ -3650,7 +3648,7 @@ class SignalGeneratorWindow(QDialog):
             self.syn_fig.canvas.draw()
             self.syn_fig.show()
             self.syn_fig.canvas.manager.window.raise_()
-            self.MW.setTextEdit("["+ModelType+"] Synaptic input signal (Isyn) generated.")
+            self.MW.setTextEdit("["+str(ModelType)+"] Synaptic input signal (Isyn) generated.")
         
         # Iaxon
         elif(currentWidget == self.uid.sp_tab):
@@ -3667,7 +3665,7 @@ class SignalGeneratorWindow(QDialog):
             self.sp_fig.canvas.draw()
             self.sp_fig.show()
             self.sp_fig.canvas.manager.window.raise_()
-            self.MW.setTextEdit("["+ModelType+"] Axonal input signal (Iaxon) generated.")
+            self.MW.setTextEdit("["+str(ModelType)+"] Axonal input signal (Iaxon) generated.")
                
         # Xm
         elif(currentWidget == self.uid.xm_tab):
@@ -3684,7 +3682,7 @@ class SignalGeneratorWindow(QDialog):
             self.xm_fig.canvas.draw()
             self.xm_fig.show()
             self.xm_fig.canvas.manager.window.raise_()
-            self.MW.setTextEdit("["+ModelType+"] Muscle length signal (Xm) generated.")
+            self.MW.setTextEdit("["+str(ModelType)+"] Muscle length signal (Xm) generated.")
         
         # ButtonBox enable
         self.uid.applyButton.setEnabled(True)
